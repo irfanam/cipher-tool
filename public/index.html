@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Secure Cipher Tool</title>
+  <style>
+    body { font-family: monospace; background: #111; color: #eee; padding: 20px; }
+    textarea, button, input { width: 100%; margin: 10px 0; padding: 10px; font-size: 16px; }
+    button { background: #333; color: #0f0; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h2>🔐 Secure Cipher Tool</h2>
+  <input type="password" id="password" placeholder="Enter access key...">
+  <textarea id="input" placeholder="Enter your text here..."></textarea>
+  <button onclick="encodeText()">Encode</button>
+  <button onclick="decodeText()">Decode</button>
+  <textarea id="output" placeholder="Result will appear here..."></textarea>
+
+  <script>
+    async function callCipherAPI(text, action) {
+      const key = document.getElementById("password").value;
+      const res = await fetch("/api/cipher", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, action, key })
+      });
+      const data = await res.json();
+      if (data.error) alert("Error: " + data.error);
+      else document.getElementById("output").value = data.result;
+    }
+    function encodeText() {
+      const text = document.getElementById("input").value;
+      callCipherAPI(text, "encode");
+    }
+    function decodeText() {
+      const text = document.getElementById("input").value;
+      callCipherAPI(text, "decode");
+    }
+  </script>
+</body>
+</html>
