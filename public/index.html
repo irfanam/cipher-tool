@@ -25,6 +25,8 @@
 
   <label><b>Output</b></label>
   <textarea id="output" rows="5" readonly></textarea>
+  <button onclick="copyOutput()">📋 Copy</button>
+  <span id="copyStatus" style="margin-left: 10px; color: green;"></span>
 
   <script>
     let accessKey = '';
@@ -61,6 +63,33 @@
       const data = await res.json();
       output.value = data.result || data.error;
     }
+    function copyOutput() {
+    const output = document.getElementById('output');
+    const status = document.getElementById('copyStatus');
+    
+    if (!output.value) {
+      status.innerText = "Nothing to copy";
+      status.style.color = "red";
+      return;
+    }
+
+    navigator.clipboard.writeText(output.value)
+      .then(() => {
+        status.innerText = "Copied!";
+        status.style.color = "green";
+
+        // Clear output after 15 seconds
+        setTimeout(() => {
+          output.value = "";
+          status.innerText = "Output cleared";
+          status.style.color = "gray";
+        }, 15000);
+      })
+      .catch(() => {
+        status.innerText = "Copy failed";
+        status.style.color = "red";
+      });
+  }
   </script>
 </body>
 </html>
