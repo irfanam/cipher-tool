@@ -1,140 +1,160 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Cipher Tool 🔐</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cipher Tool</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; }
-    textarea, input { width: 100%; margin: 10px 0; padding: 10px; }
-    button { padding: 10px 20px; margin: 10px 5px; }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 1rem;
+      background-color: #f5f5f5;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 1rem;
+      font-size: 1rem;
+    }
+    textarea, input[type="file"] {
+      width: 100%;
+      max-width: 500px;
+      padding: 0.75rem;
+      font-size: 1rem;
+      margin-top: 0.25rem;
+      border-radius: 0.5rem;
+      border: 1px solid #ccc;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 0.5rem;
+      background-color: #007BFF;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #output {
+      margin-top: 1rem;
+      height: 100px;
+    }
+    @media (max-width: 600px) {
+      body {
+        padding: 0.5rem;
+      }
+      h1 {
+        font-size: 1.5rem;
+      }
+      textarea {
+        font-size: 0.9rem;
+      }
+      button {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+      }
+    }
   </style>
 </head>
 <body>
-  <h2>🔐 Cipher Tool with Key File + Noise</h2>
+  <h1>🔐 Cipher Tool</h1>
+  <label for="fileInput">Upload Key File (.key):</label>
+  <input type="file" id="fileInput" accept=".key" /><label for="message">Message</label>
 
-  <label><b>Upload Key File (.key only)</b></label>
-  <input type="file" id="keyFile" accept=".key" />
+  <textarea id="message" rows="4" placeholder="Enter your message here..."></textarea><button onclick="encrypt()">🔒 Encrypt</button> <button onclick="decrypt()">🔓 Decrypt</button>
 
-  <label><b>Text</b></label>
-  <textarea id="text" rows="5" placeholder="Type your message..."></textarea>
+<label><b>Output</b></label>
 
-  <div>
-    <button onclick="sendRequest('encode')">🔒 Encode</button>
-    <button onclick="sendRequest('decode')">🔓 Decode</button>
-  </div>
+  <textarea id="output" rows="5" readonly></textarea>  <div>
+    <button onclick="copyOutput()">📋 Copy</button>
+    <button onclick="shareText()">🔗 Share</button>
+    <span id="copyStatus"></span>
+    <span id="shareStatus"></span>
+  </div>  <script>
+    // Placeholder script logic
+    function encrypt() {
+      const msg = document.getElementById('message').value;
+      document.getElementById('output').value = btoa(msg); // Example
+    }
 
-  <label><b>Output</b></label>
-  <textarea id="output" rows="5" readonly></textarea>
-  <button onclick="copyOutput()">📋 Copy</button>
-  <span id="copyStatus" style="margin-left: 10px; color: green;"></span>
+    function decrypt() {
+      const enc = document.getElementById('message').value;
+      try {
+        document.getElementById('output').value = atob(enc);
+      } catch {
+        document.getElementById('output').value = "Invalid encoded string.";
+      }
+    }
 
-<button onclick="shareText()">🔗 Share</button>
-<span id="shareStatus" style="margin-left: 10px; color: green;"></span>
-
-  <script>
-    let accessKey = '';
-
-    document.getElementById('keyFile').addEventListener('change', function () {
-      const file = this.files[0];
-      if (!file.name.endsWith('.key')) {
-        alert("❌ Only .key files are allowed");
-        this.value = '';
+    function copyOutput() {
+      const output = document.getElementById('output');
+      const status = document.getElementById('copyStatus');
+      if (!output.value) {
+        status.innerText = "Nothing to copy";
+        status.style.color = "red";
         return;
       }
-
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        accessKey = e.target.result.trim();
-        alert("🔑 Key loaded successfully");
-      };
-      reader.readAsText(file);
-    });
-
-    async function sendRequest(action) {
-      const text = document.getElementById('text').value;
-      const output = document.getElementById('output');
-
-      if (!accessKey) return alert("❌ No key loaded. Please upload a .key file.");
-      if (!text.trim()) return alert("❌ Please enter some text.");
-
-      const res = await fetch('/api/cipher', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, action, key: accessKey })
-      });
-
-      const data = await res.json();
-      output.value = data.result || data.error;
-    }
-    function copyOutput() {
-    const output = document.getElementById('output');
-    const status = document.getElementById('copyStatus');
-    
-    if (!output.value) {
-      status.innerText = "Nothing to copy";
-      status.style.color = "red";
-      return;
+      navigator.clipboard.writeText(output.value)
+        .then(() => {
+          status.innerText = "Copied!";
+          status.style.color = "green";
+          setTimeout(() => {
+            output.value = "";
+            status.innerText = "Output cleared";
+            status.style.color = "gray";
+          }, 15000);
+        })
+        .catch(() => {
+          status.innerText = "Copy failed";
+          status.style.color = "red";
+        });
     }
 
-    navigator.clipboard.writeText(output.value)
-      .then(() => {
-        status.innerText = "Copied!";
-        status.style.color = "green";
-
-        // Clear output after 15 seconds
-        setTimeout(() => {
-          output.value = "";
-          status.innerText = "Output cleared";
-          status.style.color = "gray";
-        }, 15000);
-      })
-      .catch(() => {
-        status.innerText = "Copy failed";
+    function shareText() {
+      const text = document.getElementById("output").value.trim();
+      const status = document.getElementById("shareStatus");
+      if (!text) {
+        status.innerText = "Nothing to share";
         status.style.color = "red";
-      });
-  }
-
-function shareText() {
-  const text = document.getElementById("output").value.trim();
-  const status = document.getElementById("shareStatus");
-
-  if (!text) {
-    status.innerText = "Nothing to share";
-    status.style.color = "red";
-    return;
-  }
-
-  if (navigator.share) {
-    navigator.share({
-      title: 'Encrypted Message',
-      text: text,
-    })
-    .then(() => {
-      status.innerText = "Shared successfully!";
-      status.style.color = "green";
-    })
-    .catch((err) => {
-      status.innerText = "Share canceled";
-      status.style.color = "gray";
-    });
-  } else {
-    // Fallback: Auto-copy to clipboard
-    navigator.clipboard.writeText(text)
-      .then(() => {
-        status.innerText = "Copied to clipboard!";
-        status.style.color = "blue";
-      })
-      .catch(() => {
-        status.innerText = "Failed to copy";
-        status.style.color = "red";
-      });
-  }
-
-  // Auto-clear the message after 10 seconds
-  setTimeout(() => {
-    status.innerText = "";
-  }, 10000);
-}
-  </script>
-</body>
+        return;
+      }
+      if (navigator.share) {
+        navigator.share({ title: 'Encrypted Message', text: text })
+          .then(() => {
+            status.innerText = "Shared successfully!";
+            status.style.color = "green";
+          })
+          .catch(() => {
+            status.innerText = "Share canceled";
+            status.style.color = "gray";
+          });
+      } else {
+        navigator.clipboard.writeText(text)
+          .then(() => {
+            status.innerText = "Copied to clipboard!";
+            status.style.color = "blue";
+          })
+          .catch(() => {
+            status.innerText = "Failed to copy";
+            status.style.color = "red";
+          });
+      }
+      setTimeout(() => {
+        status.innerText = "";
+      }, 10000);
+    }
+  </script></body>
 </html>
