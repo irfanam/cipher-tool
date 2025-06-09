@@ -1,41 +1,65 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Secure Cipher Tool</title>
+  <meta charset="UTF-8" />
+  <title>Cipher Tool 🔐</title>
   <style>
-    body { font-family: monospace; background: #111; color: #eee; padding: 20px; }
-    textarea, button, input { width: 100%; margin: 10px 0; padding: 10px; font-size: 16px; }
-    button { background: #333; color: #0f0; cursor: pointer; }
+    body { font-family: sans-serif; padding: 20px; max-width: 600px; margin: auto; }
+    textarea, input { width: 100%; margin: 10px 0; padding: 10px; }
+    button { padding: 10px 20px; margin: 10px 5px; }
   </style>
 </head>
 <body>
-  <h2>🔐 Secure Cipher Tool</h2>
-  <input type="password" id="password" placeholder="Enter access key...">
-  <textarea id="input" placeholder="Enter your text here..."></textarea>
-  <button onclick="encodeText()">Encode</button>
-  <button onclick="decodeText()">Decode</button>
-  <textarea id="output" placeholder="Result will appear here..."></textarea>
+  <h2>🔐 Cipher Tool with Key File + Noise</h2>
+
+  <label><b>Upload Key File (.key only)</b></label>
+  <input type="file" id="keyFile" accept=".key" />
+
+  <label><b>Text</b></label>
+  <textarea id="text" rows="5" placeholder="Type your message..."></textarea>
+
+  <div>
+    <button onclick="sendRequest('encode')">🔒 Encode</button>
+    <button onclick="sendRequest('decode')">🔓 Decode</button>
+  </div>
+
+  <label><b>Output</b></label>
+  <textarea id="output" rows="5" readonly></textarea>
 
   <script>
-    async function callCipherAPI(text, action) {
-      const key = document.getElementById("password").value;
-      const res = await fetch("/api/cipher", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, action, key })
+    let accessKey = '';
+
+    document.getElementById('keyFile').addEventListener('change', function () {
+      const file = this.files[0];
+      if (!file.name.endsWith('.key')) {
+        alert("❌ Only .key files are allowed");
+        this.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        accessKey = e.target.result.trim();
+        alert("🔑 Key loaded successfully");
+      };
+      reader.readAsText(file);
+    });
+
+    async function sendRequest(action) {
+      const text = document.getElementById('text').value;
+      const output = document.getElementById('output');
+
+      if (!accessKey) return alert("❌ No key loaded. Please upload a .key file.");
+      if (!text.trim()) return alert("❌ Please enter some text.");
+
+      const res = await fetch('/api/cipher', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, action, key: accessKey })
       });
+
       const data = await res.json();
-      if (data.error) alert("Error: " + data.error);
-      else document.getElementById("output").value = data.result;
-    }
-    function encodeText() {
-      const text = document.getElementById("input").value;
-      callCipherAPI(text, "encode");
-    }
-    function decodeText() {
-      const text = document.getElementById("input").value;
-      callCipherAPI(text, "decode");
+      output.value = data.result || data.error;
     }
   </script>
 </body>
