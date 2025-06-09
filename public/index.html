@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -72,18 +73,68 @@
 <body>
   <h1>🔐 Cipher Tool</h1>
   <label for="fileInput">Upload Key File (.key):</label>
-  <input type="file" id="fileInput" accept=".key" /><label for="message">Message</label>
+  <input type="file" id="fileInput" accept=".key" />
+  <label for="message">Message</label>
 
-  <textarea id="message" rows="4" placeholder="Enter your message here..."></textarea><button onclick="encrypt()">🔒 Encrypt</button> <button onclick="decrypt()">🔓 Decrypt</button>
+  <textarea id="message" rows="4" placeholder="Enter your message here..."></textarea>
+  <button onclick="encrypt()">🔒 Encrypt</button> 
+  <button onclick="decrypt()">🔓 Decrypt</button>
 
 <label><b>Output</b></label>
 
-  <textarea id="output" rows="5" readonly></textarea>  <div>
+  <textarea id="output" rows="5" readonly></textarea>  
+  <div>
     <button onclick="copyOutput()">📋 Copy</button>
     <button onclick="shareText()">🔗 Share</button>
     <span id="copyStatus"></span>
     <span id="shareStatus"></span>
-  </div>  <script>
+  </div>  
+  <script>
+    let uploadedKey = null;
+
+document.getElementById("fileInput").addEventListener("change", function(e) {
+  const file = e.target.files[0];
+  if (!file || !file.name.endsWith('.key')) {
+    alert("Please upload a valid .key file.");
+    uploadedKey = null;
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    uploadedKey = event.target.result.trim();
+    console.log("Key loaded:", uploadedKey);
+  };
+  reader.readAsText(file);
+});
+
+// Wrap encrypt/decrypt functions with a key check
+function requireKey(actionFn) {
+  return function() {
+    if (!uploadedKey) {
+      alert("Please upload a valid .key file first.");
+      return;
+    }
+    actionFn();
+  }
+}
+
+// Example encryption (just base64 here, update with your real logic)
+const encrypt = requireKey(function() {
+  const msg = document.getElementById('message').value;
+  const encoded = btoa(msg + uploadedKey); // Example: use key in encoding
+  document.getElementById('output').value = encoded;
+});
+
+const decrypt = requireKey(function() {
+  const enc = document.getElementById('message').value;
+  try {
+    const decoded = atob(enc);
+    document.getElementById('output').value = decoded.replace(uploadedKey, '');
+  } catch {
+    document.getElementById('output').value = "Invalid encoded string.";
+  }
+});
     // Placeholder script logic
     function encrypt() {
       const msg = document.getElementById('message').value;
@@ -156,5 +207,6 @@
         status.innerText = "";
       }, 10000);
     }
-  </script></body>
+  </script>
+</body>
 </html>
