@@ -28,6 +28,9 @@
   <button onclick="copyOutput()">📋 Copy</button>
   <span id="copyStatus" style="margin-left: 10px; color: green;"></span>
 
+<button onclick="shareText()">🔗 Share</button>
+<span id="shareStatus" style="margin-left: 10px; color: green;"></span>
+
   <script>
     let accessKey = '';
 
@@ -90,6 +93,48 @@
         status.style.color = "red";
       });
   }
+
+function shareText() {
+  const text = document.getElementById("output").value.trim();
+  const status = document.getElementById("shareStatus");
+
+  if (!text) {
+    status.innerText = "Nothing to share";
+    status.style.color = "red";
+    return;
+  }
+
+  if (navigator.share) {
+    navigator.share({
+      title: 'Encrypted Message',
+      text: text,
+    })
+    .then(() => {
+      status.innerText = "Shared successfully!";
+      status.style.color = "green";
+    })
+    .catch((err) => {
+      status.innerText = "Share canceled";
+      status.style.color = "gray";
+    });
+  } else {
+    // Fallback: Auto-copy to clipboard
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        status.innerText = "Copied to clipboard!";
+        status.style.color = "blue";
+      })
+      .catch(() => {
+        status.innerText = "Failed to copy";
+        status.style.color = "red";
+      });
+  }
+
+  // Auto-clear the message after 10 seconds
+  setTimeout(() => {
+    status.innerText = "";
+  }, 10000);
+}
   </script>
 </body>
 </html>
